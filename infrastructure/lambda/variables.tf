@@ -1,0 +1,3 @@
+variable "zipfile" {
+  type = string
+}

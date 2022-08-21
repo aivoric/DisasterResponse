@@ -5,5 +5,5 @@ To run the web app:
 3. run "pyenv activate DisasterResponse"
 4. run "uvicorn web:app --reload"
 """
-from app import create_app
+from src.app import create_app
 app = create_app()    
