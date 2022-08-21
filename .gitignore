@@ -1,6 +1,10 @@
 deploy
 .vscode
 infrastructure/deploy.zip
+infrastructure/.terraform/
+infrastructure/.terraform.lock.hcl
+infrastructure/terraform.tfstate
+infrastructure/terraform.tfstate.backup
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
