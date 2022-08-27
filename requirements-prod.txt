@@ -1,2 +1,4 @@
 fastapi[all]
 mangum
+nltk==3.7
+scikit-learn==1.1.2
