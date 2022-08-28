@@ -1,3 +1,0 @@
-variable "zipfile" {
-  type = string
-}
