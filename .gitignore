@@ -1,6 +1,7 @@
-deploy
+build
+build-layer
 .vscode
-infrastructure/deploy.zip
+build.zip
 infrastructure/.terraform/
 infrastructure/.terraform.lock.hcl
 infrastructure/terraform.tfstate

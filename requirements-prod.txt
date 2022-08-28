@@ -1,4 +1,4 @@
-fastapi[all]
+fastapi
+Jinja2
 mangum
-nltk==3.7
-scikit-learn==1.1.2
+SQLAlchemy
