@@ -23,7 +23,7 @@ nltk.download('omw-1.4')
 stop_words = stopwords.words("english")
 
 class MLPipeline:
-    def __init__(self, debug: bool = False):
+    def __init__(self, debug: bool = False, debug_sample_size: int = 100):
         self.engine = create_engine('sqlite:///data/DisasterResponse.db')
         self.pipeline = Pipeline([
                 ('vect', CountVectorizer(tokenizer=MLPipeline.tokenize)),
@@ -31,11 +31,12 @@ class MLPipeline:
                 ('clf', MultiOutputClassifier(XGBClassifier()))
             ])
         self.debug = debug
+        self.debug_sample_size = debug_sample_size
 
     def load_data(self):
         df = pd.read_sql_table(table_name="disaster_messages", con=self.engine)
         if self.debug:
-            df = df.head(100)
+            df = df.head(self.debug_sample_size)
         Y = df.drop(columns=['message', 'original', 'genre', 'id'])
         X = df['message']
         self.column_names = Y.columns
@@ -47,18 +48,26 @@ class MLPipeline:
     def train_cv(self):
         parameters = {
             'clf__estimator__learning_rate': [0.01, 0.1, 0.3],
-            'clf__estimator__n_estimators': [100,150,200,250,300,350,400],
+            # 'clf__estimator__n_estimators': [100,150,200,250,300,350,400],
         }
-        cv = RandomizedSearchCV(estimator=self.pipeline,
+        self.cv = RandomizedSearchCV(estimator=self.pipeline,
                                 param_distributions=parameters,
                                 n_iter=10,
                                 n_jobs=-1,
                                 cv=5,
                                 verbose=100,
-                                scoring="f1",
+                                # scoring=MLPipeline.scorer, #TODO: Complete the custom sctoring method
                                 random_state=88
                             )
-        cv.fit(self.xtrain, self.ytrain)
+        self.cv.fit(self.xtrain, self.ytrain)
+
+    @staticmethod
+    def scorer(estimator, xtest, ytest) -> dict[str, float]:
+        #TODO: Complete the custom sctoring method 
+        ypred = pd.DataFrame(estimator.predict(xtest))
+        print(ypred)
+        score = {'f1': f1_score(ytest.iloc[:, 1], ypred.iloc[:, 1], average='weighted', zero_division=0)}
+        return score
 
     @staticmethod
     def tokenize(text) -> list:
@@ -73,32 +82,44 @@ class MLPipeline:
         results = []
         for i, column_name in enumerate(column_names):
             accuracy = accuracy_score(ytest.iloc[:, i], ypred.iloc[:, i])
-            f1 = f1_score(ytest.iloc[:, i], ypred.iloc[:, i], average='micro')
-            precision = precision_score(ytest.iloc[:, i], ypred.iloc[:, i], average='micro')
-            recall = recall_score(ytest.iloc[:, i], ypred.iloc[:, i], average='micro')        
+            f1 = f1_score(ytest.iloc[:, i], ypred.iloc[:, i], average='weighted', zero_division=0)
+            precision = precision_score(ytest.iloc[:, i], ypred.iloc[:, i], average='weighted', zero_division=0)
+            recall = recall_score(ytest.iloc[:, i], ypred.iloc[:, i], average='weighted', zero_division=0)        
             results.append([column_name, accuracy, f1, precision, recall])
         return pd.DataFrame(results, columns=['category', 'accuracy score', 'f1 score', 'precision score', 'recall score'])
 
-    def evaluate_no_cv_model(self):
-        ypred = self.pipeline.predict(self.xtest)
+    def evaluate_model(self, pipeline: bool=True):
+        ypred = pd.DataFrame(self.pipeline.predict(self.xtest)) if pipeline else pd.DataFrame(self.cv.predict(self.xtest))
         scores_df = MLPipeline.get_score(self.ytest, ypred, self.column_names)
         scores_df.sort_values(by=["f1 score"], inplace=True)
         print(tabulate(scores_df, headers='keys', tablefmt='psql'))
     
-    def evaluate_cv_model(self):
-        pass
-
-    def save_pipeline(self, filename: str = "./models/pipeline.pkl"):
+    def save_estimator(self, filename: str = "./models/pipeline.pkl"):
         outfile = open(filename, "wb")
         pickle.dump(self.pipeline, outfile)
         outfile.close()
+    
+    def save_cv_estimator(self, filename: str = "./models/pipeline_cv.pkl"):
+        outfile = open(filename, "wb")
+        pickle.dump(self.cv.estimator, outfile)
+        outfile.close()
+
+    def load_estimator(self, filename: str = "./models/pipeline_cv.pkl"):
+        outfile = open(filename, "rb")
+        self.pipeline = pickle.load(outfile)
+        outfile.close()
 
 def main():
-    ml_pipeline = MLPipeline(debug=True)
+    ml_pipeline = MLPipeline(debug=True, debug_sample_size=50)
     ml_pipeline.load_data()
     ml_pipeline.train_no_cv()
-    ml_pipeline.evaluate_no_cv_model()
-    ml_pipeline.save_pipeline()
+    ml_pipeline.evaluate_model(pipeline=True)
+    ml_pipeline.save_estimator()
+    ml_pipeline.train_cv()
+    ml_pipeline.evaluate_model(pipeline=False)
+    ml_pipeline.save_cv_estimator()
+    ml_pipeline.load_estimator()
+    ml_pipeline.evaluate_model(pipeline=True)
 
 if __name__ == '__main__':
     main()
