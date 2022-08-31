@@ -1,109 +1,106 @@
-resource "aws_iam_policy" "lambda_logging" {
-  name        = "lambda_logging"
-  path        = "/"
-  description = "IAM policy for logging from a lambda"
+### ------------------
+### S3 Objects ###
+### ------------------
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "arn:aws:logs:*:*:*",
-      "Effect": "Allow"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_logs" {
-  role       = aws_iam_role.iam_ml_lambda.name
-  policy_arn = aws_iam_policy.lambda_logging.arn
-}
-
-resource "aws_cloudwatch_log_group" "cloudwatch_log_group" {
-  name              = "/aws/lambda/${aws_lambda_function.ml_lambda.function_name}"
-  retention_in_days = 3
-}
-
-resource "aws_iam_role" "iam_ml_lambda" {
-  name = "iam_ml_lambda"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
-}
-
-
-data "aws_s3_object" "s3_lambda_zip" {
+data "aws_s3_object" "lambda_web" {
   bucket = "ik-udacity"
-  key    = "build.zip"
+  key    = "lambda_web.zip"
   # source = "build.zip"
 }
 
-data "aws_s3_object" "ml_lambda_zip" {
+data "aws_s3_object" "lambda_ml" {
   bucket = "ik-udacity"
-  key    = "build-layer.zip"
+  key    = "lambda_ml.zip"
   # source = "build.zip"
 }
 
-resource "aws_lambda_layer_version" "ml_lambda_layer" {
-  s3_bucket     = data.aws_s3_object.ml_lambda_zip.bucket
-  s3_key        = data.aws_s3_object.ml_lambda_zip.key
-  layer_name = "ml_lambda_layer"
-  source_code_hash = "${base64sha256(tostring(data.aws_s3_object.ml_lambda_zip.last_modified))}"
+data "aws_s3_object" "layer_sklearn_xgboost" {
+  bucket = "ik-udacity"
+  key    = "lambda_layer_sklearn_xgboost.zip"
+  # source = "build.zip"
+}
 
+data "aws_s3_object" "layer_pandas_plotly" {
+  bucket = "ik-udacity"
+  key    = "lambda_layer_pandas_plotly.zip"
+  # source = "build.zip"
+}
+
+### ------------------
+### Lambda Layers ###
+### ------------------
+
+# Lambda layer containing sklearn and xgboost libraries
+resource "aws_lambda_layer_version" "layer_sklearn_xgboost" {
+  s3_bucket     = data.aws_s3_object.layer_sklearn_xgboost.bucket
+  s3_key        = data.aws_s3_object.layer_sklearn_xgboost.key
+  layer_name = "layer_sklearn_xgboost"
+  source_code_hash = "${base64sha256(tostring(data.aws_s3_object.layer_sklearn_xgboost.last_modified))}"
   compatible_runtimes = ["python3.9"]
 }
 
+# Lambda layer containing pandas and plotly libraries
+resource "aws_lambda_layer_version" "layer_pandas_plotly" {
+  s3_bucket     = data.aws_s3_object.layer_pandas_plotly.bucket
+  s3_key        = data.aws_s3_object.layer_pandas_plotly.key
+  layer_name = "layer_pandas_plotly"
+  source_code_hash = "${base64sha256(tostring(data.aws_s3_object.layer_pandas_plotly.last_modified))}"
+  compatible_runtimes = ["python3.9"]
+}
 
-resource "aws_lambda_function" "ml_lambda" {
-  # If the file is not in the current working directory you will need to include a 
-  # path.module in the filename.
-  # filename      = var.zipfile
-  function_name = "ml_lambda"
-  s3_bucket     = data.aws_s3_object.s3_lambda_zip.bucket
-  s3_key        = data.aws_s3_object.s3_lambda_zip.key
-  role          = aws_iam_role.iam_ml_lambda.arn
+### ------------------
+### Lambda Functions ###
+### ------------------
+
+resource "aws_lambda_function" "lambda_web" {
+  function_name = "lambda_web"
+  s3_bucket     = data.aws_s3_object.lambda_web.bucket
+  s3_key        = data.aws_s3_object.lambda_web.key
+  role          = aws_iam_role.lambda_role.arn
   handler       = "app.handler"
-
-  # The filebase64sha256() function is available in Terraform 0.11.12 and later
-  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
-  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
-  # source_code_hash = data.aws_s3_object.s3_lambda_zip.body
-  source_code_hash = "${base64sha256(tostring(data.aws_s3_object.s3_lambda_zip.last_modified))}"
-  layers = [aws_lambda_layer_version.ml_lambda_layer.arn]
-
+  source_code_hash = "${base64sha256(tostring(data.aws_s3_object.lambda_web.last_modified))}"
   runtime = "python3.9"
   timeout = 20
   memory_size = 512
-
-  environment {
-    variables = {
-      foo = "bar"
-    }
-  }
+  layers = [
+    aws_lambda_layer_version.layer_pandas_plotly.arn
+  ]
 }
 
-resource "aws_lambda_function_url" "ml_lambda_url" {
-  function_name      = aws_lambda_function.ml_lambda.function_name
+resource "aws_lambda_function" "lambda_ml" {
+  function_name = "lambda_ml"
+  s3_bucket     = data.aws_s3_object.lambda_ml.bucket
+  s3_key        = data.aws_s3_object.lambda_ml.key
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "function.lambda_handler"
+  source_code_hash = "${base64sha256(tostring(data.aws_s3_object.lambda_ml.last_modified))}"
+  runtime = "python3.9"
+  timeout = 20
+  memory_size = 512
+  layers = [
+    // aws_lambda_layer_version.layer_sklearn_xgboost.arn
+  ]
+}
+
+### ------------------
+### Lambda Function URLs ###
+### ------------------
+
+resource "aws_lambda_function_url" "lambda_web" {
+  function_name      = aws_lambda_function.lambda_web.function_name
   authorization_type = "NONE"
 }
 
+### ------------------
+### Cloudwatch Log Group ###
+### ------------------
+
+resource "aws_cloudwatch_log_group" "cloudwatch_lambda_web" {
+  name              = "/aws/lambda/${aws_lambda_function.lambda_web.function_name}"
+  retention_in_days = 3
+}
+
+resource "aws_cloudwatch_log_group" "cloudwatch_lambda_ml" {
+  name              = "/aws/lambda/${aws_lambda_function.lambda_ml.function_name}"
+  retention_in_days = 3
+}
