@@ -6,7 +6,7 @@ pip install \
     --implementation cp \
     --python 3.9 \
     --only-binary=:all: --upgrade \
-    pandas==1.4.3 pandas
+    pandas==1.4.3
 pip install --target build -r requirements-prod.txt
 cd build && zip -r9 ../build.zip . && cd ..
 cd src && zip -g ../build.zip -r . && cd ..

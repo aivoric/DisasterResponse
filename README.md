@@ -83,6 +83,17 @@ deployment package file size: https://docs.aws.amazon.com/lambda/latest/dg/getti
    * 250 MB (unzipped)
 * The web app will only load the front page and display the Database results, however the prediction will not work because SKLearn and XGBoost are not currently packaged during the build
 * To address this problem I need to package the entire app in a container and then deploy that via Lambda because Lambdas allow for a 10GB image to be deployed via containers.
+* When creating a zipped package for lambda some modules are installed using your local machine architecture and hence will not work on Linux based Lambdas. One particular library affected by this is Pandas. To get around this you need to install the library using a target platform architecture. Below is how this can be done for pandas:
+
+```
+pip install \
+    --platform manylinux2014_x86_64 \
+    --target=build \
+    --implementation cp \
+    --python 3.9 \
+    --only-binary=:all: --upgrade \
+    pandas==1.4.3
+```
 
 ### Future improvements
 * Add a custom scoring function to the ML pipeline
