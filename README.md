@@ -70,15 +70,17 @@ Below are the results after training the model:
 To deploy the model to production (AWS Lambda):
 
 1. Copy the Disaster Response database and the trained pickled pipeline from ml/data and ml/models to the web app src/app/database and src/app/ml/pipeline.pkl
-2. Install terraform and aws cli are installed
+2. Install terraform and aws cli
 3. Setup the AWS cli with your production account: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html
-4. Run `bash build.bash` which will package all the files
+4. Run `bash build.bash` which will package all the files and deployment via terraform
 
 IMPORTANT:
 * The incomplete web app is available here: https://o22bvwrb33ce4gwi4fnckemtmm0ozrus.lambda-url.eu-central-1.on.aws/
 * Production deployment is not currently complete
 * During an attempt to deploy this app to AWS Lambda I've discovered that Pandas, SKLearn, XGBoost, and Plotly are very heavy dependencies and lambda has a limit for the overall zipped
-deployment package file size
+deployment package file size: https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html
+* * 50 MB (zipped, for direct upload)
+* * 250 MB (unzipped)
 * The web app will only load the front page and display the Database results, however the prediction will not work because SKLearn and XGBoost are not currently packaged during the build
 * To address this problem I need to package the entire app in a container and then deploy that via Lambda because Lambdas allow for a 10GB image to be deployed via containers.
 
@@ -88,3 +90,4 @@ deployment package file size
 * Add tests.
 * Improve the UI of the web app.
 * Improve code quality. Certain classes contain tech debt.
+* Improve CICD: 1) start using github action, 2) save the terraform state either in the terraform cloud or on S3
