@@ -61,7 +61,8 @@ uvicorn web:app --reload
 
 ### Results
 
-Below are the results after training the model:
+Below are the results after training the model. The "pretty" table results in the terminal are achieved
+by the python tabulate package: https://pypi.org/project/tabulate/
 
 ![Disaster Response Results](https://github.com/aivoric/DisasterResponse/blob/main/ml/results/model-results.png?raw=true)
 
