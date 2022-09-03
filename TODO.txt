@@ -1,0 +1,7 @@
+# Create policy for Lambda to call Lambda
+# Create lambda layer 1 with sklearn and xgboost
+# Create lambda layer 2 with pandas and plotly
+# Create predictor Lambda which use lambda layer 1
+# Create predictor Lambda zip package and upload to S3
+# Update web lambda to call predictor lambda and which uses lambda layer 1
+# Update web lambda zip package
