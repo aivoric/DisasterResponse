@@ -178,7 +178,7 @@ def main():
         
     ml_pipeline = MLPipeline(debug=True, debug_sample_size=50)
     """
-    ml_pipeline = MLPipeline(debug=True, debug_sample_size=50)
+    ml_pipeline = MLPipeline(debug=False, debug_sample_size=1000)
     ml_pipeline.load_data()
     ml_pipeline.train_no_cv()
     ml_pipeline.evaluate_model(pipeline=True)
