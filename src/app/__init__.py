@@ -6,6 +6,9 @@ from mangum import Mangum
 import os
 
 def create_app():
+    """
+    Returns a FastAPI instance of the web app.
+    """
     app = FastAPI()    
     static_files = os.path.join(os.path.dirname(os.path.realpath(__file__)), "static")
     app.mount("/static", StaticFiles(directory=static_files), name="static")
@@ -13,4 +16,5 @@ def create_app():
     app.include_router(router_ml.router)
     return app
 
+# handler is used by the AWS Lambda to launch the web app.
 handler = Mangum(create_app(), lifespan="off")

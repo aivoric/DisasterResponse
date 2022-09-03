@@ -2,6 +2,10 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 class ETLPipeline():
+    """
+    Class for getting the disaster response data, cleaning it up and preparing
+    it for the machine learning step.
+    """
     def __init__(self, message_location: str, category_location: str, 
             database: str, output_table: str) -> None:
         self.message_location = message_location
@@ -40,6 +44,14 @@ class ETLPipeline():
             raise Exception("Could not save df to database.")
 
 def main():
+    """
+    Create an ETLPipeline object and run the methods for the ETL flow:
+    1) load_data()
+    2) clean_data()
+    3) save_data()
+
+    The final result is a SQLlite database prepared for the ML step.
+    """
     message_location = "data/messages.csv"
     category_location = "data/categories.csv"
     database = "sqlite:///data/DisasterResponse.db"

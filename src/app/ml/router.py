@@ -1,3 +1,6 @@
+"""
+Render the /ml/go page with the query results.
+"""
 import pandas as pd
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
@@ -17,6 +20,11 @@ router = APIRouter(
 
 @router.get("/go", response_class=HTMLResponse)
 async def ml_home(request: Request, query: str):
+    """
+    Take the query string param and use the Predictor object to get the classification
+    of the query string.
+    Then render the classification results via the go.jinja template and return to web UI.
+    """
     predictor = Predictor(query, df)
     classification_result = predictor.predict()    
     data = {

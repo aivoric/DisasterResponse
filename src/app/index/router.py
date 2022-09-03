@@ -1,3 +1,6 @@
+"""
+Homepage of the web app.
+"""
 import json
 import pandas as pd
 import numpy as np
@@ -20,6 +23,11 @@ router = APIRouter(
 
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request):
+    """
+    Handle the request for the homepage.
+
+    Group the data from SQLLite DB via pandas, render index.jinja template with the relevant data.
+    """
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
 

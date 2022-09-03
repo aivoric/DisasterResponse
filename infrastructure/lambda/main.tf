@@ -51,55 +51,23 @@ resource "aws_iam_role" "iam_ml_lambda" {
 EOF
 }
 
-
 data "aws_s3_object" "s3_lambda_zip" {
   bucket = "ik-udacity"
-  key    = "build.zip"
-  # source = "build.zip"
+  key    = "v1-lambda-web.zip"
 }
-
-data "aws_s3_object" "ml_lambda_zip" {
-  bucket = "ik-udacity"
-  key    = "build-layer.zip"
-  # source = "build.zip"
-}
-
-resource "aws_lambda_layer_version" "ml_lambda_layer" {
-  s3_bucket     = data.aws_s3_object.ml_lambda_zip.bucket
-  s3_key        = data.aws_s3_object.ml_lambda_zip.key
-  layer_name = "ml_lambda_layer"
-  source_code_hash = "${base64sha256(tostring(data.aws_s3_object.ml_lambda_zip.last_modified))}"
-
-  compatible_runtimes = ["python3.9"]
-}
-
 
 resource "aws_lambda_function" "ml_lambda" {
-  # If the file is not in the current working directory you will need to include a 
-  # path.module in the filename.
-  # filename      = var.zipfile
   function_name = "ml_lambda"
   s3_bucket     = data.aws_s3_object.s3_lambda_zip.bucket
   s3_key        = data.aws_s3_object.s3_lambda_zip.key
   role          = aws_iam_role.iam_ml_lambda.arn
   handler       = "app.handler"
 
-  # The filebase64sha256() function is available in Terraform 0.11.12 and later
-  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
-  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
-  # source_code_hash = data.aws_s3_object.s3_lambda_zip.body
   source_code_hash = "${base64sha256(tostring(data.aws_s3_object.s3_lambda_zip.last_modified))}"
-  layers = [aws_lambda_layer_version.ml_lambda_layer.arn]
 
   runtime = "python3.9"
   timeout = 20
   memory_size = 512
-
-  environment {
-    variables = {
-      foo = "bar"
-    }
-  }
 }
 
 resource "aws_lambda_function_url" "ml_lambda_url" {

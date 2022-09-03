@@ -8,6 +8,11 @@ stop_words = stopwords.words("english")
 lemmatizer = WordNetLemmatizer()
 
 def tokenize(text):
+    """
+    Helper function which is used to clean up a string of text and turn it into lemmed tokens.
+
+    This function is used within the Pipeline.
+    """
     text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower()).strip()
     
     # Todo: tokenize text
