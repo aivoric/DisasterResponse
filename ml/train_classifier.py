@@ -94,16 +94,16 @@ class MLPipeline:
                             )
         self.cv.fit(self.xtrain, self.ytrain)
 
-    @staticmethod
-    def scorer(estimator, xtest, ytest) -> dict[str, float]:
-        """
-        To finish: custom scoring function for the pipeline training using RandomizedSearchCV(). 
-        """
-        #TODO: Complete the custom sctoring method 
-        ypred = pd.DataFrame(estimator.predict(xtest))
-        print(ypred)
-        score = {'f1': f1_score(ytest.iloc[:, 1], ypred.iloc[:, 1], average='weighted', zero_division=0)}
-        return score
+    # @staticmethod
+    # def scorer(estimator, xtest, ytest) -> dict[str, float]:
+    #     """
+    #     To finish: custom scoring function for the pipeline training using RandomizedSearchCV(). 
+    #     """
+    #     #TODO: Complete the custom sctoring method 
+    #     ypred = pd.DataFrame(estimator.predict(xtest))
+    #     print(ypred)
+    #     score = {'f1': f1_score(ytest.iloc[:, 1], ypred.iloc[:, 1], average='weighted', zero_division=0)}
+    #     return score
 
     @staticmethod
     def tokenize(text) -> list:
