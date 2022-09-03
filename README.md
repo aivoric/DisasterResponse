@@ -64,7 +64,14 @@ uvicorn web:app --reload
 Below are the results after training the model. The "pretty" table results in the terminal are achieved
 by the python tabulate package: https://pypi.org/project/tabulate/
 
-![Disaster Response Results](https://github.com/aivoric/DisasterResponse/blob/main/ml/results/model-results.png?raw=true)
+![Disaster Response Results](https://github.com/aivoric/DisasterResponse/blob/main/results/model-results.png?raw=true)
+
+Web app home:
+![Disaster Response Results](https://github.com/aivoric/DisasterResponse/blob/main/results/webapp-home.png?raw=true)
+
+Web app classification results after running the query "This group of people needs water, food and money since they are refugees who escaped military oppression.":
+![Disaster Response Results](https://github.com/aivoric/DisasterResponse/blob/main/results/webapp-ml.png?raw=true)
+
 
 ### Deploying the app to AWS Lambda
 
