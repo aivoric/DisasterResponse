@@ -79,8 +79,8 @@ IMPORTANT:
 * Production deployment is not currently complete
 * During an attempt to deploy this app to AWS Lambda I've discovered that Pandas, SKLearn, XGBoost, and Plotly are very heavy dependencies and lambda has a limit for the overall zipped
 deployment package file size: https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html
-* * 50 MB (zipped, for direct upload)
-* * 250 MB (unzipped)
+** 50 MB (zipped, for direct upload)
+** 250 MB (unzipped)
 * The web app will only load the front page and display the Database results, however the prediction will not work because SKLearn and XGBoost are not currently packaged during the build
 * To address this problem I need to package the entire app in a container and then deploy that via Lambda because Lambdas allow for a 10GB image to be deployed via containers.
 
